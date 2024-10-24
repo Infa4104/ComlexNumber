@@ -8,7 +8,9 @@
 using namespace std;
 ostringstream sstream;
 
-class Comlex_number
+// Написал Антон
+
+class ComlexNumber
 {
 private:
   double Re_part;
@@ -16,8 +18,6 @@ private:
 
 public:
   
-  // Написал Антон
-
   bool Re(double Real) {
     Re_part = Real;
     return true;
@@ -58,10 +58,45 @@ public:
     return out;
   }
 
+  ComlexNumber(){
+    Re_part = 0;
+    Im_part = 0;
+  }
+  ComlexNumber(double& Real){
+    Re_part = Real;
+    Im_part = 0;
+  }
+  ComlexNumber(double& Real,double& UnReal){
+    Re_part = Real;
+    Im_part = UnReal;
+  }
 
 };
+
+// Написал Иван
+
+class ICreatorComplexNumber{
+public:
+    virtual ComlexNumber* createComplexNumber(double& Phase) = 0;
+};
+
+class CreatorComplexNumberFromPhaseRadians : public ICreatorComplexNumber {
+public:
+    ComlexNumber* createComplexNumber(double& Phase) override{
+      return new ComlexNumber();
+    }
+    
+};
+class CreatorComplexNumberFromPhaseDegree : public ICreatorComplexNumber {
+  public:
+    ComlexNumber* createComplexNumber(double& Phase) override{
+      return new ComlexNumber();
+    }
+};
+
+
 int main() {
-  Comlex_number cmx;
+  ComlexNumber cmx;
   cmx.Re(2);
   cmx.Im(2);
   
