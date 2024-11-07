@@ -1,5 +1,7 @@
 
 #include <iostream>
+
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include <sstream> 
@@ -9,6 +11,8 @@ using namespace std;
 ostringstream sstream;
 
 // Написал Антон
+
+
 
 class ComlexNumber
 {
@@ -58,18 +62,8 @@ public:
     return out;
   }
 
-  ComlexNumber(){
-    Re_part = 0;
-    Im_part = 0;
-  }
-  ComlexNumber(double& Real){
-    Re_part = Real;
-    Im_part = 0;
-  }
-  ComlexNumber(double& Real,double& UnReal){
-    Re_part = Real;
-    Im_part = UnReal;
-  }
+  explicit ComlexNumber(double Real = 0, double UnReal = 0) : Re_part(Real), Im_part(UnReal)
+  {}
 
 };
 
@@ -83,28 +77,35 @@ public:
 class CreatorComplexNumberFromPhaseRadians : public ICreatorComplexNumber {
 public:
     ComlexNumber* createComplexNumber(double& Phase) override{
-      return new ComlexNumber();
+      return new ComlexNumber(cos(Phase),sin(Phase));
     }
     
 };
 class CreatorComplexNumberFromPhaseDegree : public ICreatorComplexNumber {
   public:
     ComlexNumber* createComplexNumber(double& Phase) override{
-      return new ComlexNumber();
+      Phase = Phase *M_PI/180;
+      return new ComlexNumber(cos(Phase),sin(Phase));
     }
 };
 
 
 int main() {
-  ComlexNumber cmx;
-  cmx.Re(2);
-  cmx.Im(2);
+
+  double phase = M_PI;
+
+  ICreatorComplexNumber* creator = new CreatorComplexNumberFromPhaseRadians();
+
+  ComlexNumber* cn1 = creator->createComplexNumber(phase);
+
+  cout << cn1->Conj() << endl;
   
-  cout << cmx.Abs();
-  cout << '\n';
-  cout << cmx.ArgDeg();
-  cout << '\n';
-  cout << cmx.Conj();
+  creator = new CreatorComplexNumberFromPhaseDegree();
+
+  ComlexNumber* cn2 = creator->createComplexNumber(phase);
+
+  cout << cn2->Conj() << endl;
+
   exit(0);
   return 0;
 }
