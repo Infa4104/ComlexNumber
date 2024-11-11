@@ -1,111 +1,67 @@
+// #include <iostream>
+
+// #include "comlex_number.cpp"
+
+// int main() {
+
+//   // double phase = 3.141;
+
+//   // ICreatorComplexNumber* creator = new CreatorComplexNumberFromPhaseRadians();
+
+//   // ComlexNumber* cn1 = creator->createComplexNumber(phase);
+
+//   // cout << cn1->Conj() << endl;
+  
+//   // creator = new CreatorComplexNumberFromPhaseDegree();
+
+//   // ComlexNumber* cn2 = creator->createComplexNumber(phase);
+
+//   // cout << cn2->Conj() << endl;
+
+//   // exit(0);
+//   return 0;
+// }
+
 
 #include <iostream>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-#include <sstream> 
-#include <string.h> 
-
-using namespace std;
-ostringstream sstream;
-
-// Написал Антон
-
-
-
-class ComlexNumber
-{
+#include <fstream>
+#include <vector>
+#include <string>
+class FileManager {
+public:
+    FileManager(const std::string& filename) : filename(filename) {}
+    void readBinFile() {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file) {
+            std::cerr << "Не удалось открыть файл: " << filename << std::endl;
+            return;
+        }
+        std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        std::cout << "Содержимое бинарного файла " << filename << ": " << std::endl;
+        for (const char& byte : buffer) {
+            std::cout << static_cast<int>(byte) << " ";
+        }
+        std::cout << std::endl;
+    }
+    void readDatFile() {
+        std::ifstream file(filename);
+        if (!file) {
+            std::cerr << "Не удалось открыть файл: " << filename << std::endl;
+            return;
+        }
+        std::string line;
+        std::cout << "Содержимое текстового файла " << filename << ": " << std::endl;
+        while (std::getline(file, line)) {
+            std::cout << line << std::endl;
+        }
+    }
 private:
-  double Re_part;
-  double Im_part;
-
-public:
-  
-  bool Re(double Real) {
-    Re_part = Real;
-    return true;
-  }
-  const double& Re() {
-    return Re_part;
-  }
-  bool Im(double UnReal) {
-    Im_part = UnReal;
-    return true;
-  }
-  const double& Im() {
-    return Im_part;
-  }
-  double Abs() {
-    return sqrt(Re_part * Re_part + Im_part * Im_part);
-  }
-  double Arg() {
-    if (Im_part == 0) {
-      return 0;
-    }
-    return atan(Re_part / Im_part);
-  }
-
-  double ArgDeg() {
-    if (Im_part == 0) {
-      return 0;
-    }
-    return atan(Re_part / Im_part) * 360 / (2 * 3.141592);
-  }
-  string Conj(){
-    ostringstream s;
-    s << Re_part;
-    s << ' ';
-    s << -1*Im_part;
-    s << 'i';
-    string out = s.str();
-    return out;
-  }
-
-  explicit ComlexNumber(double Real = 0, double UnReal = 0) : Re_part(Real), Im_part(UnReal)
-  {}
-
+    std::string filename;
 };
-
-// Написал Иван
-
-class ICreatorComplexNumber{
-public:
-    virtual ComlexNumber* createComplexNumber(double& Phase) = 0;
-};
-
-class CreatorComplexNumberFromPhaseRadians : public ICreatorComplexNumber {
-public:
-    ComlexNumber* createComplexNumber(double& Phase) override{
-      return new ComlexNumber(cos(Phase),sin(Phase));
-    }
-    
-};
-class CreatorComplexNumberFromPhaseDegree : public ICreatorComplexNumber {
-  public:
-    ComlexNumber* createComplexNumber(double& Phase) override{
-      Phase = Phase *M_PI/180;
-      return new ComlexNumber(cos(Phase),sin(Phase));
-    }
-};
-
-
 int main() {
-
-  double phase = M_PI;
-
-  ICreatorComplexNumber* creator = new CreatorComplexNumberFromPhaseRadians();
-
-  ComlexNumber* cn1 = creator->createComplexNumber(phase);
-
-  cout << cn1->Conj() << endl;
-  
-  creator = new CreatorComplexNumberFromPhaseDegree();
-
-  ComlexNumber* cn2 = creator->createComplexNumber(phase);
-
-  cout << cn2->Conj() << endl;
-
-  exit(0);
-  return 0;
+    // FileManager binFileManager(".bin"); // Укажите имя вашего бинарного файла
+    // binFileManager.readBinFile();
+    FileManager datFileManager("am_sound.dat"); // Укажите имя вашего текстового файла
+    datFileManager.readDatFile();
+    return 0;
 }
