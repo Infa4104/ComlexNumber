@@ -29,6 +29,7 @@ public:
             data.push_back(ComlexNumber(buffer[i],buffer[++i]));
         }
         cout << "Данные успешно прочитаны." << endl;
+        file.close()
     }
 };
 int main() {
