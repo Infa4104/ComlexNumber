@@ -11,7 +11,7 @@ class FileManager {
 private:
 string path;
 public:
-    vector <ComlexNumber> data;
+    vector <ComlexNumber> signal;
     FileManager(const string& path = "") : path(path) {
         ifstream file(path, ios::binary);
         if (!file) {
@@ -19,22 +19,15 @@ public:
             return;
         }
         cout << "Удалось открыть файл: " << path << endl;
-
-        vector<char> buffer;
-        char byte;
-        while (file.get(byte)) {
-            buffer.push_back(byte);
-        }
-        for (size_t i = 0; i < buffer.size(); ++i) {
-            data.push_back(ComlexNumber(buffer[i],buffer[++i]));
+        string str{istreambuf_iterator<char>(file), istreambuf_iterator<char>()};
+        for (size_t i = 0; i < str.size();i=i+2){
+            int w = i + 1;
+            signal.push_back(ComlexNumber(str[i],str[w]));
         }
         cout << "Данные успешно прочитаны." << endl;
-        file.close()
+        file.close();
     }
 };
 int main() {
     FileManager binFileManager("sound/file1EuropaPlus.bin"); 
-    for (size_t i = 0; i < 200; ++i){
-        cout << binFileManager.data[i].Conj() << endl;
-    }
 }
