@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 
 #define _USE_MATH_DEFINES
@@ -25,46 +27,43 @@ ostringstream sstream;
 
   // cout << cn2->Conj() << endl;
 
-
-class ComlexNumber
-{
+template <typename T>
+class Сomplex {
 private:
-  double Re_part;
-  double Im_part;
-
+  T Re_part;
+  T Im_part;
 public:
-  
-  bool Re(double Real) {
+  bool re(T Real) {
     Re_part = Real;
     return true;
   }
-  const double& Re() {
+  const T& re() {
     return Re_part;
   }
-  bool Im(double UnReal) {
+  bool im(T UnReal) {
     Im_part = UnReal;
     return true;
   }
-  const double& Im() {
+  const T& im() {
     return Im_part;
   }
-  double Abs() {
+  T Abs() {
     return sqrt(Re_part * Re_part + Im_part * Im_part);
   }
-  double Arg() {
+  T arg() {
     if (Im_part == 0) {
       return 0;
     }
     return atan(Re_part / Im_part);
   }
 
-  double ArgDeg() {
+  T argDeg() {
     if (Im_part == 0) {
       return 0;
     }
     return atan(Re_part / Im_part) * 360 / (2 * 3.141592);
   }
-  string Conj(){
+  string conj(){
     ostringstream s;
     s << Re_part;
     s << ' ';
@@ -74,27 +73,26 @@ public:
     return out;
   }
 
-  explicit ComlexNumber(double Real = 0, double UnReal = 0) : Re_part(Real), Im_part(UnReal)
+  explicit Сomplex(T Real = 0, T UnReal = 0) : Re_part(Real), Im_part(UnReal)
   {}
-
 };
 
 class ICreatorComplexNumber{
 public:
-    virtual ComlexNumber* createComplexNumber(double& Phase) = 0;
+    virtual Сomplex<double>* createComplexNumber(int& Phase) = 0;
 };
 
 class CreatorComplexNumberFromPhaseRadians : public ICreatorComplexNumber {
 public:
-    ComlexNumber* createComplexNumber(double& Phase) override{
-      return new ComlexNumber(cos(Phase),sin(Phase));
+    Сomplex<double>* createComplexNumber(int& Phase) override{
+      return new Сomplex(cos(Phase),sin(Phase));
     }
     
 };
 class CreatorComplexNumberFromPhaseDegree : public ICreatorComplexNumber {
   public:
-    ComlexNumber* createComplexNumber(double& Phase) override{
+    Сomplex<double>*  createComplexNumber(int& Phase) override{
       Phase = Phase *M_PI/180;
-      return new ComlexNumber(cos(Phase),sin(Phase));
+      return new Сomplex(cos(Phase),sin(Phase));
     }
 };
