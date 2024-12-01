@@ -3,27 +3,11 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <cstdint>
 
 #include "comlex_number.h"
 
 using namespace std;
-
-// Заголовок WAV
-struct WavHeader {
-    char riff[4]; // "RIFF"
-    int overall_size; // Размер файла - 8 байт + размер данных
-    char wave[4]; // "WAVE"
-    char fmt[4]; // "fmt "
-    int fmt_length; // Длина формата
-    int format_type; // Тип формата (1 - PCM)
-    int channels; // Количество каналов
-    int sample_rate; // Частота дискретизации
-    int bytes_per_second; // Байты в секунду
-    int block_align; // Размер блока
-    int bits_per_sample; // Биты на выборку
-    char data[4]; // "data"
-    int data_size; // Размер данных
-};
 
 
 class FileManager {
@@ -38,10 +22,10 @@ public:
             return;
         }
         cout << "Удалось открыть файл: " << path << endl;
-        string  str{istreambuf_iterator<char>(file), istreambuf_iterator<char>()};
-        for (size_t i = 0; i < str.size();i=i+2){
-            int w = i + 1;
-            signal.push_back(Сomplex(int(str[i]),int(str[w])));
+
+        Сomplex<int> value;
+        while (file.read(reinterpret_cast<char*>(&value), sizeof(int))) {
+            signal.push_back(value); 
         }
 
         cout << "Данные успешно прочитаны." << endl;
@@ -49,67 +33,92 @@ public:
     }
 };
 
-class WavWriter {
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cstdint>
+
+class WavRecorder {
 public:
-    WavWriter(const string& filename, int sampleRate = 32000) : sampleRate(sampleRate) {
-        outputFile.open(filename, ios::binary);
+    WavRecorder(const string& filename, int sampleRate, int numChannels)
+        : filename_(filename), sampleRate_(sampleRate), numChannels_(numChannels) {}
+
+    void record(const vector<int>& signal) {
+        ofstream outputFile(filename_, ios::binary);
         if (!outputFile) {
-            throw runtime_error("Ошибка открытия файла для записи");
+            cout << "Ошибка открытия файла для записи!" << endl;
+            return;
         }
-        writeWavHeader();
-    }
-    ~WavWriter() {
-        writeWavFooter();
-        outputFile.close();
+
+        vector<int16_t> normalizedSignal = normalize(signal);
+
+        writeWavHeader(outputFile, normalizedSignal.size());
+
+        for (const int& sample : normalizedSignal) {
+            int16_t sampleValue = static_cast<int16_t>(sample); 
+            outputFile.write(reinterpret_cast<const char*>(&sampleValue), sizeof(sampleValue));
+        }
+
+        outputFile.close(); // Закрываем файл
+
+        cout << "Сигнал записан в файл demodulated_signal.wav" << endl;
     }
 
-    void writeSample(const int& sample) {
-        outputFile.write(reinterpret_cast<const char*>(&sample), sizeof(int));
-    }
 private:
-    ofstream outputFile;
-    int sampleRate;
-    int dataSize = 0;
+    std::string filename_;
+    int sampleRate_;
+    int numChannels_;
 
-    void writeWavHeader() {
-        // Запись заголовка WAV
-        outputFile.write("RIFF", 4);
-        int chunkSize = 36; // размер данных (заполнится позже)
-        outputFile.write(reinterpret_cast<const char*>(&chunkSize), sizeof(int));
-        outputFile.write("WAVE", 4);
-        outputFile.write("fmt ", 4);
-        
-        int subChunk1Size = 16; // размер подчиненного чанка
-        outputFile.write(reinterpret_cast<const char*>(&subChunk1Size), sizeof(int));
-        
-        int audioFormat = 3; // формат: 3 - IEEE Float
-        outputFile.write(reinterpret_cast<const char*>(&audioFormat), sizeof(int));
-        
-        int numChannels = 1; // два канала (действительная и мнимая части)
-        outputFile.write(reinterpret_cast<const char*>(&numChannels), sizeof(int));
-        
-        outputFile.write(reinterpret_cast<const char*>(&sampleRate), sizeof(int));
-        
-        int byteRate = sampleRate * numChannels * sizeof(float);
-        outputFile.write(reinterpret_cast<const char*>(&byteRate), sizeof(int));
-        
-        int blockAlign = numChannels * sizeof(float);
-        outputFile.write(reinterpret_cast<const char*>(&blockAlign), sizeof(int));
-        
-        int bitsPerSample = 32; // 32 бита на выборку
-        outputFile.write(reinterpret_cast<const char*>(&bitsPerSample), sizeof(int));
-        
-        outputFile.write("data", 4);
-        dataSize = 0; // будет обновлено позже
+    vector<int16_t> normalize(const vector<int>& signal) {
+        // Находим максимальное абсолютное значение
+        int maxAbsValue = 0;
+        for (const int& sample : signal) {
+            maxAbsValue = max(maxAbsValue, abs(sample));
+        }
+
+        // Нормализуем значения
+        vector<int16_t> normalizedSignal;
+        for (const int& sample : signal) {
+            if (maxAbsValue == 0) {
+                normalizedSignal.push_back(0); // Если maxAbsValue равен 0, добавляем 0
+            } else {
+                // Нормализуем и приводим к 16-битному значению
+                int16_t normalizedValue = static_cast<int16_t>((sample * 32767) / maxAbsValue);
+                normalizedSignal.push_back(normalizedValue);
+            }
+        }
+        return normalizedSignal;
     }
 
-    void writeWavFooter() {
+    void writeWavHeader(std::ofstream& outputFile, size_t numSamples) {
+        const int bitsPerSample = 16; // 16 бит на сэмпл
+        const int byteRate = sampleRate_ * numChannels_ * bitsPerSample / 8;
+        const int blockAlign = numChannels_ * bitsPerSample / 8;
 
-        int chunkSize = dataSize + 36;
-        outputFile.seekp(4, ios::beg);
-        outputFile.write(reinterpret_cast<const char*>(&chunkSize), sizeof(int));
-        
-        outputFile.seekp(40, ios::beg);
-        outputFile.write(reinterpret_cast<const char*>(&dataSize), sizeof(int));
+        // Заголовок RIFF
+        outputFile.write("RIFF", 4);
+        uint32_t chunkSize = 36 + numSamples * blockAlign;
+        outputFile.write(reinterpret_cast<const char*>(&chunkSize), sizeof(chunkSize));
+
+        // Заголовок WAVE
+        outputFile.write("WAVE", 4);
+
+        // Заголовок fmt
+        outputFile.write("fmt ", 4);
+        uint32_t subChunk1Size = 16; // Размер подзаголовка fmt
+        outputFile.write(reinterpret_cast<const char*>(&subChunk1Size), sizeof(subChunk1Size));
+        uint16_t audioFormat = 1; // PCM
+        outputFile.write(reinterpret_cast<const char*>(&audioFormat), sizeof(audioFormat));
+        outputFile.write(reinterpret_cast<const char*>(&numChannels_), sizeof(numChannels_));
+        outputFile.write(reinterpret_cast<const char*>(&sampleRate_), sizeof(sampleRate_));
+        outputFile.write(reinterpret_cast<const char*>(&byteRate), sizeof(byteRate));
+        outputFile.write(reinterpret_cast<const char*>(&blockAlign), sizeof(blockAlign));
+        outputFile.write(reinterpret_cast<const char*>(&bitsPerSample), sizeof(bitsPerSample));
+
+        // Заголовок data
+        outputFile.write("data", 4);
+        uint32_t subChunk2Size = numSamples * blockAlign;
+        outputFile.write(reinterpret_cast<const char*>(&subChunk2Size), sizeof(subChunk2Size));
     }
 };

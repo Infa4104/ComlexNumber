@@ -47,7 +47,7 @@ public:
   const T& im() {
     return Im_part;
   }
-  T Abs() {
+  T abs() {
     return sqrt(Re_part * Re_part + Im_part * Im_part);
   }
   T arg() {

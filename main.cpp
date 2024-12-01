@@ -7,13 +7,10 @@
 #include "demodulators.h"
 
 int main() {
-    FileManager binFileManager("sound/file1EuropaPlus.bin");
-    WavWriter writer("output.wav");
+    FileManager binFileManager("sound/am_sound.dat");
+    WavRecorder recorder("demodulated_signal.wav", 32000, 1);
     DemodulatorAM demodulator;
     demodulator.receiveSignal(binFileManager.signal);
-
-    for (const auto& value : demodulator.getDemodulatedSignal()) {
-        writer.writeSample(value);
-    }
+    recorder.record(demodulator.getDemodulatedSignal());
     return 0;
 } 

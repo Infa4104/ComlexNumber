@@ -25,7 +25,7 @@ public:
     void receiveSignal(vector<Сomplex<int>>& signal) override {
         demodulatedSignal.clear();
         for (size_t i = 0; i < signal.size();++i) {
-            demodulatedSignal.push_back(signal.at(i).Abs());
+            demodulatedSignal.push_back(signal.at(i).abs());
         }
         cout << "Сигнал успешно получен." << endl;
     }
