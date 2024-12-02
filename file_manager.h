@@ -5,16 +5,16 @@
 #include <string>
 #include <cstdint>
 
-#include "comlex_number.h"
+#include <complex>
 
 using namespace std;
 
-
+template <typename T>
 class FileManager {
 private:
 string path;
 public:
-    vector <Сomplex<int>> signal;
+    vector <complex<T>> signal;
     FileManager(const string& path = "") : path(path) {
         ifstream file(path, ios::binary);
         if (!file) {
@@ -23,8 +23,8 @@ public:
         }
         cout << "Удалось открыть файл: " << path << endl;
 
-        Сomplex<int> value;
-        while (file.read(reinterpret_cast<char*>(&value), sizeof(int))) {
+        complex<T> value;
+        while (file.read(reinterpret_cast<char*>(&value), sizeof(complex<T>))) {
             signal.push_back(value); 
         }
 
@@ -33,18 +33,13 @@ public:
     }
 };
 
-
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cstdint>
-
+template <typename T>
 class WavRecorder {
 public:
     WavRecorder(const string& filename, int sampleRate, int numChannels)
         : filename_(filename), sampleRate_(sampleRate), numChannels_(numChannels) {}
 
-    void record(const vector<int>& signal) {
+    void record(const vector<T>& signal) {
         ofstream outputFile(filename_, ios::binary);
         if (!outputFile) {
             cout << "Ошибка открытия файла для записи!" << endl;
@@ -62,15 +57,15 @@ public:
 
         outputFile.close(); // Закрываем файл
 
-        cout << "Сигнал записан в файл demodulated_signal.wav" << endl;
+        cout << "Сигнал записан в файл: " << filename_ << endl;
     }
 
 private:
-    std::string filename_;
+    string filename_;
     int sampleRate_;
     int numChannels_;
 
-    vector<int16_t> normalize(const vector<int>& signal) {
+    vector<int16_t> normalize(const vector<T>& signal) {
         // Находим максимальное абсолютное значение
         int maxAbsValue = 0;
         for (const int& sample : signal) {
@@ -79,7 +74,7 @@ private:
 
         // Нормализуем значения
         vector<int16_t> normalizedSignal;
-        for (const int& sample : signal) {
+        for (const T& sample : signal) {
             if (maxAbsValue == 0) {
                 normalizedSignal.push_back(0); // Если maxAbsValue равен 0, добавляем 0
             } else {
@@ -91,7 +86,7 @@ private:
         return normalizedSignal;
     }
 
-    void writeWavHeader(std::ofstream& outputFile, size_t numSamples) {
+    void writeWavHeader(ofstream& outputFile, size_t numSamples) {
         const int bitsPerSample = 16; // 16 бит на сэмпл
         const int byteRate = sampleRate_ * numChannels_ * bitsPerSample / 8;
         const int blockAlign = numChannels_ * bitsPerSample / 8;
