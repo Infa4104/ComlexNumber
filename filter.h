@@ -27,7 +27,7 @@ vector<double> filter(const vector<double>& signal, int window_size) {
 
 vector<int> downsample(const vector<int>& signal, int factor) {
     if (factor <= 0) {
-        throw std::invalid_argument("Фактор должно быть положительным числом");
+        throw invalid_argument("Фактор должно быть положительным числом");
     }
 
     vector<int> downsampledSignal;
