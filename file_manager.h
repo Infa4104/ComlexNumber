@@ -46,13 +46,11 @@ public:
             return;
         }
 
-        vector<int16_t> normalizedSignal = normalize(signal);
+        writeWavHeader(outputFile, signal.size());
 
-        writeWavHeader(outputFile, normalizedSignal.size());
-
-        for (const int& sample : normalizedSignal) {
-            int16_t sampleValue = static_cast<int16_t>(sample); 
-            outputFile.write(reinterpret_cast<const char*>(&sampleValue), sizeof(sampleValue));
+        for (const float& sample : signal) {
+            // int16_t sampleValue = static_cast<int16_t>(sample); 
+            outputFile.write(reinterpret_cast<const char*>(&sample), sizeof(sample));
         }
 
         outputFile.close(); // Закрываем файл
@@ -64,27 +62,6 @@ private:
     string filename_;
     int sampleRate_;
     int numChannels_;
-
-    vector<int16_t> normalize(const vector<T>& signal) {
-        // Находим максимальное абсолютное значение
-        int maxAbsValue = 0;
-        for (const int& sample : signal) {
-            maxAbsValue = max(maxAbsValue, abs(sample));
-        }
-
-        // Нормализуем значения
-        vector<int16_t> normalizedSignal;
-        for (const T& sample : signal) {
-            if (maxAbsValue == 0) {
-                normalizedSignal.push_back(0); // Если maxAbsValue равен 0, добавляем 0
-            } else {
-                // Нормализуем и приводим к 16-битному значению
-                int16_t normalizedValue = static_cast<int16_t>((sample * 32767) / maxAbsValue);
-                normalizedSignal.push_back(normalizedValue);
-            }
-        }
-        return normalizedSignal;
-    }
 
     void writeWavHeader(ofstream& outputFile, size_t numSamples) {
         const int bitsPerSample = 16; // 16 бит на сэмпл
@@ -116,4 +93,20 @@ private:
         uint32_t subChunk2Size = numSamples * blockAlign;
         outputFile.write(reinterpret_cast<const char*>(&subChunk2Size), sizeof(subChunk2Size));
     }
+};
+
+struct WavHeader {
+    char chunkId[4];
+    uint32_t chunkSize;
+    char format[4];
+    char subchunk1Id[4];
+    uint32_t subchunk1Size;
+    uint16_t audioFormat;
+    uint16_t numChannels;
+    uint32_t sampleRate;
+    uint32_t byteRate;
+    uint16_t blockAlign;
+    uint16_t bitsPerSample;
+    char subchunk2Id[4];
+    uint32_t subchunk2Size;
 };
