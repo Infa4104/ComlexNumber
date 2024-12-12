@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 #include <complex>
-
-#include "file_manager.h"
+#include <cmath> 
+#include "file_manager.cpp"
 #include "demodulators.h"
 #include "filter.h"
 
@@ -31,40 +31,51 @@ vector<int16_t> normalize(const vector<int>& signal) {
 };
 
 int main() {
-    WavHeader header;
-    DemodulatorAM demodulator_am;
 
-    FileManager<int> file_manager_dat("sound/am_sound.dat");
 
-    strcpy(header.chunkId, "RIFF");
-    strcpy(header.format, "WAVE");
-    strcpy(header.subchunk1Id, "fmt ");
-    strcpy(header.subchunk2Id, "data");    
-    header.chunkSize = 36 + 32000 * 15 * 2;
-    header.subchunk1Size = 16;
-    header.audioFormat = 1;
-    header.numChannels = 1;
-    header.sampleRate = 32000;
-    header.byteRate = 2;        
-    header.bitsPerSample = 16;
-    header.subchunk2Size = 32000 * 15 * 2;
+    complex<uint32_t> value;
+    ifstream file("sound/am_sound.dat", ios::binary);
+    ofstream file1("file.txt");
     
-    FILE *file = fopen("signal/am_demodulated_signal.wav","wb");
+    while (file.read(reinterpret_cast<char*>(&value), sizeof(complex<uint32_t>))) {
+        file1 << to_string(value.real()*value.real() + value.imag()*value.imag()) <<  endl;
+    }
+    file.close();
+    file1.close();
+
+
+    return 0;
+
+
+    // strcpy(header.chunkId, "RIFF");
+    // strcpy(header.format, "WAVE");
+    // strcpy(header.subchunk1Id, "fmt ");
+    // strcpy(header.subchunk2Id, "data");    
+    // header.chunkSize = 36 + 32000 * 15 * 2;
+    // header.subchunk1Size = 16;
+    // header.audioFormat = 1;
+    // header.numChannels = 1;
+    // header.sampleRate = 32000;
+    // header.byteRate = 2;        
+    // header.bitsPerSample = 16;
+    // header.subchunk2Size = 32000 * 15 * 2;
+    
+    // FILE *file = fopen("signal/am_demodulated_signal.wav","wb");
     
 
 
-    demodulator_am.demodulation(file_manager_dat.signal);
+    // demodulator_am.demodulation(file_manager_dat.signal);
 
-    vector<int16_t> signal = normalize(demodulator_am.getDemodulatedSignal());
+    // vector<int16_t> signal = normalize(demodulator_am.getDemodulatedSignal());
 
-    for (size_t i = 0; i < signal.size(); ++i) 
-        fwrite(&signal[i],sizeof(signal[i]),1,file);
-
-
-    fwrite(&header,sizeof(header),1,file);
+    // for (size_t i = 0; i < signal.size(); ++i) 
+    //     fwrite(&signal[i],sizeof(signal[i]),1,file);
 
 
-    fclose(file);
+    // fwrite(&header,sizeof(header),1,file);
+
+
+    // fclose(file);
     // FileManager<int> file_manager_dat("sound/am_sound.dat");
     // WavRecorder<int> recorder_am("signal/am_demodulated_signal.wav", 32000, 1);
     // DemodulatorAM demodulator_am;
